@@ -1,3 +1,13 @@
+/*==============================================================================
+ *   Copyright (C) 2016 All rights reserved.
+ *
+ *  File Name   : dcnn_util.h
+ *  Author      : Zhongping Liang
+ *  Date        : 2016-07-05
+ *  Version     : 1.0
+ *  Description : This file provides some utils for dcnn.
+ *============================================================================*/
+
 #ifndef DCNN_UTILS_H_
 #define DCNN_UTILS_H_
 
@@ -7,6 +17,9 @@
 #include <cstdio>
 #include <iostream>
 #include <sstream>
+
+namespace fdcnn
+{
 
 typedef double real_t;
 typedef int32_t int_t;
@@ -18,8 +31,13 @@ const int_t MAX_WORD_LEN = 100;
 const int_t MAX_FIELD_NUM = 100;
 const int_t LOG_PER_EXA = 1000;
 const int_t BUFF_SIZE = 64;
-const std::string NIL = "NIL";
+//const std::string NIL = "NIL";
+const std::string NIL = "__NIL__";
 
+/*
+ * struct ScopedLock.
+ *  ScopedLock auto release lock.
+ */
 struct ScopedLock
 {
 public:
@@ -28,24 +46,25 @@ public:
 private :
     pthread_mutex_t &mut;
 };
-struct ScopedIfs
+
+/*
+ * struct ScopedFstream.
+ *   ScopedFstream auto close fstream.
+ */
+template <typename T>
+struct ScopedFstream
 {
 public :
-    ScopedIfs(std::ifstream &in) : file(in) { }
-    ~ScopedIfs() { if (file.is_open()) { file.close(); } }
+    ScopedFstream(T &in) : file(in) { }
+    ~ScopedFstream() { if (file.is_open()) { file.close(); } }
 private:
-    std::ifstream &file;
+    T &file;
 };
 
-struct ScopedOfs
-{
-public:
-    ScopedOfs(std::ofstream &in) : file(in) { }
-    ~ScopedOfs() { if (file.is_open()) { file.close(); } }
-private:
-    std::ofstream &file;
-};
-
+/*
+ * struct ScopedFile.
+ *  ScopedFile auto close file.
+ */
 struct ScopedFile
 {
 public :
@@ -55,7 +74,9 @@ private :
     FILE * file;
 };
 
-
+/*
+ * enum LogLevel.
+ */
 enum LogLevel {
     LOG_LEVEL_DEBUG,
     LOG_LEVEL_INFO,
@@ -67,6 +88,13 @@ enum LogLevel {
 const LogLevel gLogLevel = LOG_LEVEL_INFO;
 //const LogLevel gLogLevel = LOG_LEVEL_DEBUG;
 
+/*
+ *  @brief      This func gets level C-type string.
+ *  @author     Zhongping Liang
+ *  @date       2016-07-05
+ *  @param      lvl: the log level.
+ *  @return     the level C-type string.
+ */
 inline const char *GetLogLevelStr(LogLevel lvl)
 {
     switch (lvl)
@@ -87,6 +115,10 @@ inline const char *GetLogLevelStr(LogLevel lvl)
     return "";
 }
 
+/*
+ * struct OutBuffer.
+ *  Collect the log output buffer.
+ */
 struct OutBuffer
 {
     template <typename T>
@@ -114,5 +146,7 @@ if (level >= gLogLevel) { \
 #define LOG_WARN(message)  LOG(LOG_LEVEL_WARN,  message)
 #define LOG_ERROR(message) LOG(LOG_LEVEL_ERROR, message)
 #define LOG_FATAL(message) LOG(LOG_LEVEL_FATAL, message)
+
+} // namespace fdcnn
 
 #endif //DCNN_UTILS_H_

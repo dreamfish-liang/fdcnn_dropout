@@ -1,8 +1,22 @@
+/*==============================================================================
+ *   Copyright (C) 2016 All rights reserved.
+ *
+ *  File Name   : operator.cpp
+ *  Author      : Zhongping Liang
+ *  Date        : 2016-07-05
+ *  Version     : 1.0
+ *  Description : This file implements functions declarated in operator.h
+ *============================================================================*/
+
 #include "operator.h"
+
 #include <cstdlib>
 #include <cmath>
 #include <cstring>
 #include <algorithm>
+
+namespace fdcnn
+{
 
 static real_t DROPOUT_THRESHOLD = 0.99;
 void reset(real_t *input, int_t size)
@@ -12,7 +26,7 @@ void reset(real_t *input, int_t size)
 
 void non_linear_forward_operator(real_t *bottom, int_t size, real_t *top)
 {
-    for (int_t i = 0; i < size; ++i) { 
+    for (int_t i = 0; i < size; ++i) {
         top[i] = non_linear_function(bottom[i]);
     }
 }
@@ -45,9 +59,9 @@ void convolution_forward_operator(real_t * bottom_M, int_t nbr, int_t nbc,
     real_t * weight_M, int_t nwr, int_t wsz, real_t * top_M)
 {
     int_t i1, i2, i3, i4, i5, wlb;
-    const int_t ntc = wsz + nbc - 1;      //number of result matrix columns
-    const int_t nwc = wsz * nbr + 1;      //number of weight matrix columns
-    real_t z = 0;                         //weight sum.
+    const int_t ntc = wsz + nbc - 1;    //number of result matrix columns
+    const int_t nwc = wsz * nbr + 1;    //number of weight matrix columns
+    real_t z = 0;                       //weight sum.
     for (i1 = 0; i1 < ntc; ++i1){
         for (i2 = 0; i2 < nwr; ++i2){
             i3 = i1;
@@ -71,7 +85,6 @@ void convolution_backward_operator(real_t * diff_top_M, int_t ntr, int_t ntc,
     real_t * diff_bottom_M, int_t nbr)
 {
     const int_t nwc = wsz * nbr + 1;    //column number of weight matrix.
-    const int_t tmp = nwc * ntr;        //size of weight matrix.
     const int_t nbc = ntc + 1 - wsz;    //number of result matrix columns
     int_t i1, i2, i3, i4, i5, wlb;
     real_t z = 0;
@@ -86,13 +99,13 @@ void convolution_backward_operator(real_t * diff_top_M, int_t ntr, int_t ntc,
             for (i4 = nbr - 1; i4 > -1; --i4, --i3){
                 for (z = 0, i5 = 0; i5 < ntr; ++i5){
                     diff_weight_M[i5 * nwc + i3] += diff_top_M[i5 * ntc + i1]
-                        * bottom_M[i4 * nbc + i2]; //weight
+                        * bottom_M[i4 * nbc + i2];  //weight
                     z += diff_top_M[i5 * ntc + i1] * weight_M[i5 * nwc + i3];
                 }
                 diff_bottom_M[i4 * nbc + i2] += z;
             }
         }
-        for (i5 = 0; i5 < ntr; ++i5) { // loop for bias
+        for (i5 = 0; i5 < ntr; ++i5) {  // loop for bias
             diff_weight_M[(i5 + 1) * nwc - 1] += diff_top_M[i5 * ntc + i1];
         }
     }
@@ -133,14 +146,14 @@ void convolution_backward(real_t ** diff_top_Ms, int_t ntm, int_t ntr,
 void full_connection_forward(real_t * bottom_V, int_t nbr, real_t * weight_M,
     int_t nwr, real_t * top_V)
 {
-    const int_t nwc = nbr + 1;        //number of weight matrix columns
+    const int_t nwc = nbr + 1;          //number of weight matrix columns
     int_t i1, i2;
     real_t z = 0;
     for (i1 = 0; i1 < nwr; ++i1){
         for (z = 0, i2 = 0; i2 < nbr; ++i2) {
             z += weight_M[i1* nwc + i2] * bottom_V[i2];
         }
-        top_V[i1] = z + weight_M[i1 * nwc + nbr];    //add bias
+        top_V[i1] = z + weight_M[i1 * nwc + nbr];   //add bias
     }
 }
 
@@ -148,7 +161,7 @@ void full_connection_backward(real_t * diff_top_V, int_t ntr,
     real_t * weight_M, real_t * diff_weight_M, real_t * bottom_V,
     real_t * diff_bottom_V, int_t nbr)
 {
-    const int_t nwc = nbr + 1;        //number of weight matrix columns
+    const int_t nwc = nbr + 1;          //number of weight matrix columns
     int_t i1, i2;
     real_t z = 0;
     for (i1 = 0; i1 < nbr; ++i1) {
@@ -158,7 +171,7 @@ void full_connection_backward(real_t * diff_top_V, int_t ntr,
         }
         diff_bottom_V[i1] = z;
     }
-    for (i2 = 0; i2 < ntr; ++i2) {
+    for (i2 = 0; i2 < ntr; ++i2) {      //loop for bias.
         diff_weight_M[i2 * nwc + nbr] += diff_top_V[i2];
     }
 }
@@ -168,7 +181,7 @@ void full_connection_forward(real_t ** bottom_Ms, int_t nbm, int_t nbr,
     int_t nbc, real_t * weight_M, real_t * top_V, int_t ntr)
 {
     const int_t tmp = nbc * nbr;
-    const int_t nwc = nbm * tmp + 1;      //number of weight matrix columns
+    const int_t nwc = nbm * tmp + 1;    //number of weight matrix columns
     int_t i1, i2, i3, i4;
     real_t z = 0;
     for (i1 = 0; i1 < ntr; ++i1){
@@ -180,7 +193,7 @@ void full_connection_forward(real_t ** bottom_Ms, int_t nbm, int_t nbr,
                 }
             }
         }
-        top_V[i1] = z + weight_M[(i1 + 1) * nwc - 1];    //add bias
+        top_V[i1] = z + weight_M[(i1 + 1) * nwc - 1];   //add bias
     }
 }
 
@@ -206,7 +219,7 @@ void full_connection_backward(real_t * diff_top_V, int_t ntr, real_t * weight_M,
         }
     }
     for (i4 = 0; i4 < ntr; ++i4) {
-        diff_weight_M[(i4 + 1) * nwc - 1] += diff_top_V[i4];   // update bias
+        diff_weight_M[(i4 + 1) * nwc - 1] += diff_top_V[i4];    // update bias
     }
 }
 
@@ -215,7 +228,7 @@ void k_max_pooling_forward_operator(real_t * bottom_M, int_t nbr, int_t nbc,
 {
     int_t i1, i2;
     real_t z = 0;
-    real_t dpa[MAX_SEN_LEN];      //save the lengths of max vectors in up order.
+    real_t dpa[MAX_SEN_LEN];    //save the lengths of max vectors in up order.
     for (i1 = 0; i1 < k; ++i1) { dpa[i1] = -1; }
     for (i1 = 0; i1 < nbc; ++i1){
         for (z = 0, i2 = 0; i2 < nbr; ++i2) {
@@ -276,13 +289,12 @@ void bernoulli(int_t *mask, int_t size, real_t prob, ulong_t &seed)
 {
     static const ulong_t RAND_GROUND = 0x00000000FFFFFFFF;
     for (int_t i = 0; i < size; ++i) {
-        mask[i] = static_cast<real_t>(next_random(seed) & RAND_GROUND) / 
+        mask[i] = static_cast<real_t>(next_random(seed) & RAND_GROUND) /
             static_cast<real_t>(RAND_GROUND) < prob ? 1 : 0;
- 
     }
 }
 
-void drop_out_forward_operator(real_t * bottom, int_t size, int_t *mask,
+void dropout_forward_operator(real_t * bottom, int_t size, int_t *mask,
     real_t *top, real_t prob, ulong_t &seed)
 {
     bernoulli(mask, size, prob, seed);
@@ -291,7 +303,7 @@ void drop_out_forward_operator(real_t * bottom, int_t size, int_t *mask,
     }
 }
 
-void drop_out_backward_operator(real_t * diff_top, int_t size, int_t *mask,
+void dropout_backward_operator(real_t * diff_top, int_t size, int_t *mask,
     real_t *diff_bottom)
 {
     for (int_t i = 0; i < size; ++i) {
@@ -299,15 +311,15 @@ void drop_out_backward_operator(real_t * diff_top, int_t size, int_t *mask,
     }
 }
 
-void drop_out_forward(real_t ** bottoms, int_t nb,  int_t size, int_t **masks,
+void dropout_forward(real_t ** bottoms, int_t nb,  int_t size, int_t **masks,
     real_t **tops, real_t prob, ulong_t &seed, bool isTrain)
 {
     if (prob > DROPOUT_THRESHOLD) { return; }
     int_t i1, i2;
     if (isTrain) {
         for (i1 = 0; i1 < nb; ++i1) {
-            drop_out_forward_operator(bottoms[i1], size, masks[i1], tops[i1],
-                prob, seed);
+            dropout_forward_operator(bottoms[i1], size, masks[i1], tops[i1],
+                                     prob, seed);
         }
     } else {
         for (i1 = 0; i1 < nb; ++i1) {
@@ -318,13 +330,15 @@ void drop_out_forward(real_t ** bottoms, int_t nb,  int_t size, int_t **masks,
     }
 }
 
-void drop_out_backward(real_t ** diff_tops, int_t nt, int_t size, int_t **masks,
+void dropout_backward(real_t ** diff_tops, int_t nt, int_t size, int_t **masks,
     real_t **diff_bottoms, real_t prob)
 {
     if (prob > DROPOUT_THRESHOLD) { return; }
     for (int_t i = 0; i < nt; ++i) {
-        drop_out_backward_operator(diff_tops[i], size, masks[i],
-            diff_bottoms[i]);
+        dropout_backward_operator(diff_tops[i], size, masks[i],
+                                  diff_bottoms[i]);
     }
 }
+
+} // namespace fdcnn
 

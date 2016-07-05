@@ -1,6 +1,6 @@
 dropout = 0.5
 nif = 5
-nfd = 200 10 5 5 5
+nfd = 60 10 5 5 5
 ncl = 1
 scw = 5
 ncr = 30 
