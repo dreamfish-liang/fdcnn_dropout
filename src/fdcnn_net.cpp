@@ -1181,6 +1181,7 @@ int_t FdcnnNet::registerRunRes()
                 ++busy_num;
                 for (int_t i = 0; i < thrd_capacity; ++i) {
                     if (!busy_map[i]) {
+                        busy_map[i] = 1;
                         LOG_DEBUG(("Leave RegisterRunRes, res_id: ")(i));
                         return i;
                     }

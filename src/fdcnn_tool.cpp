@@ -10,6 +10,7 @@
 #include <fstream>
 #include <iostream>
 #include <pthread.h>
+#include <cstring>
 
 #include "string_handler.h"
 #include "fdcnn_net.h"
@@ -523,8 +524,8 @@ void SwitchModel(int_t argc, char **argv)
         fprintf(stdout, "Fdcnn toolkit v 0.1b\n\n");
         fprintf(stdout, "Switch model options:\n");
         fprintf(stdout, "For example:\n");
-        fprintf(stdout, "\t./dcnn_switch_model model.bin model.txt\n");
-        fprintf(stdout, "\t./dcnn_switch_model some model.txt model.bin\n");
+        fprintf(stdout, "\t./fdcnn_switch_model model.bin model.txt\n");
+        fprintf(stdout, "\t./fdcnn_switch_model some model.txt model.bin\n");
         exit(-1);
     }
     char src_file_name[MAX_PATH_LEN] = { 0 };
@@ -575,7 +576,7 @@ void GetFeat(int_t argc, char **argv){
         fprintf(stdout, "\t-binary <int_t>\n");
         fprintf(stdout, "\t\tSet save in binary mode; (default is 1)\n");
         fprintf(stdout, "For example:\n");
-        fprintf(stdout, "\t./fdcnn_get_feats -predict test.tsv -model"
+        fprintf(stdout, "\t./fdcnn_getfeat -predict test.tsv -model"
             " model -out out.fea -binary 0 -threads 1\n");
         exit(-1);
     }

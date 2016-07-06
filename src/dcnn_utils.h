@@ -17,6 +17,7 @@
 #include <cstdio>
 #include <iostream>
 #include <sstream>
+#include <ctime>
 
 namespace fdcnn
 {
